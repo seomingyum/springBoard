@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.board">
+	<resultMap id="boardResult" type="com.spring.springBoard.board.vo.BoardVo">
+		<result property="articleNO" column="articleNO" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="writeDate" column="writeDate" />
+        <result property="id" column="id" />
+        <result property="articleType" column="articleType" />
+        <result property="fileName_1" column="fileName_1" />
+        <result property="fileName_2" column="fileName_2" />
+	</resultMap> 
+	
+	<select id="selectAllBoardList" parameterType="Map" resultMap="boardResult">
+     	
+     	select * 
+     	from(
+     	select rownum rn, x.*
+     	from(
+         select * from t_board 
+         <where>
+	         articleType = #{articleType}
+	         <if test='title != null and title!=""'>
+	         and title like '%'||#{title}||'%'
+	         </if>
+	         <if test="content != null and content!=''">
+	         and content like '%'||#{content}||'%'
+	         </if>
+	         <if test="id != null and id != ''">
+	         and id like '%'||#{id}||'%'
+	         </if>
+        </where>  
+          order by writeDate desc
+          ) x
+          )
+          <where>
+          	rn <![CDATA[>]]> #{param1} and rn <![CDATA[<=]]> #{param2}
+          </where>	 	
+     
+	</select>
+	
+	<select id="selectAllReplyList" parameterType="int" resultType="replyVo">
+     
+         select * from t_reply
+         <where>
+	         articleNO = #{articleNO}
+        </where>  
+          order by replyDate desc	 	
+     
+	</select>
+	
+	<delete id="deleteArticle"  parameterType="int">
+		<![CDATA[
+		   delete from t_board
+		   where
+		   articleNO = #{articleNO}
+		]]> 
+	</delete>
+    
+     <insert id="insertArticle"  parameterType="boardVo">
+		 insert into t_board(articleNO, title, 
+		 <if test="content!=null">
+		 content, 
+		 </if>
+		 id, 
+		 <if test='fileName_1!=null'>
+		 fileName_1,
+		 </if>
+		 <if test='fileName_2!=null'> 
+		 fileName_2,
+		 </if> 
+		 articleType)
+		 values(no_seq.nextval, #{title}, 
+		 <if test="content!=null">
+		 #{content, jdbcType=VARCHAR}, 
+		 </if>
+		 #{id},
+		 <if test='fileName_1!=null'>
+		 #{fileName_1},
+		 </if>
+		 <if test='fileName_2!=null'> 
+		 #{fileName_2},
+		 </if> 
+		 #{articleType}) 
+	</insert>
+	
+   
+   <update id="updateArticle"  parameterType="boardVo">
+     
+     update t_board
+     
+     <set>
+	     title=#{title}, content=#{content},
+	     <if test="fileName_1!=null">
+	     	fileName_1=#{fileName_1}, 
+	     </if>
+	     <if test="fileName_2!=null">
+	     	fileName_2=#{fileName_2},
+	     </if>
+	 </set>   
+     where
+     articleNO=#{articleNO}
+   </update>
+   
+   <insert id="insertReply" parameterType="replyVo">
+   		insert into t_reply(replyNO, replyContent, id, articleNO)
+   		values (reply_seq.nextval, #{replyContent}, #{id}, #{articleNO})
+   </insert>
+   
+   
+   <update id="updateReply"  parameterType="replyVo">
+     
+     update t_reply
+     <set>
+	     replyContent=#{replyContent}
+	 </set>   
+     where
+     replyNO=#{replyNO}
+   </update>
+   
+   <delete id="deleteReply"  parameterType="replyVo">
+		<![CDATA[
+		   delete from t_reply
+		   where
+		   replyNO = #{replyNO}
+		]]> 
+	</delete>
+	
+	<select id="selectArticle" parameterType="int" resultType="boardVo">
+         select * from t_board
+         <where>
+	         articleNO = #{articleNO}
+        </where>  	 	
+	</select>
+	
+	<select id="getTotal" parameterType="Map" resultType="int">
+        select count(*) from t_board 
+         <where>
+	         articleType = #{articleType}
+	         <if test='title != null and title!=""'>
+	         and title like '%'||#{title}||'%'
+	         </if>
+	         <if test="content != null and content!=''">
+	         and content like '%'||#{content}||'%'
+	         </if>
+	         <if test="id != null and id != ''">
+	         and id like '%'||#{id}||'%'
+	         </if>
+        </where>  	 	
+	</select>
+	
+	
+	
+   <!--   
+   <delete id="deleteMember"  parameterType="String">
+	<![CDATA[
+	   delete from  t_member
+	   where
+	   id=#{id}
+	]]>      
+  </delete>
+  <select id="loginById"  resultType="memberVO"   parameterType="memberVO" >
+	<![CDATA[
+		select * from t_member	
+		where id=#{id} and pwd=#{pwd}		
+	]]>
+  </select> -->
+</mapper>
